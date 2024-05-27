@@ -1,0 +1,26 @@
+{
+  "wazuh_server" : {
+    "hostname": "192.168.0.38",
+    "credentials": {
+      "login": "wazuh",
+      "password": "XKSz07d9ZssaOlr7TSU3ZOM52PC?x1lb"
+    },
+    "elastic_credentials": {
+      "login" : "admin",
+      "password": "O6jvltJoE++9VsA7AW67Z17PRH8DzX5+"
+    }
+  },
+  "db_connection" : {
+    "host" : "127.0.0.1",
+    "username" : "root",
+    "password" : "root",
+    "database": "ids_test"
+  },
+  "targets": [
+    {
+      "id": "002",
+      "url": "http://192.168.0.8:3000",
+      "open_api_path": "../openapi/juice-shop.yml"
+    }
+  ]
+}
