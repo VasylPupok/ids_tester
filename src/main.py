@@ -2,8 +2,8 @@ import init_modules
 from src.attack_modules.attack import Attacker
 
 
-def main(args: tuple = ()) -> int:
-    config = init_modules.Initializer("../config/config.json")
+def main(args: tuple[str] = ()) -> int:
+    config = init_modules.Initializer(args[0])
     techniques = config.db_connection.get_all_techniques()
 
     for target in config.targets:
@@ -37,9 +37,9 @@ def main(args: tuple = ()) -> int:
                             for p in schema.properties:
                                 name = p.name
                                 if name == 'array':
-                                    body[name] = payload.payload # should pass array params properly
+                                    body[name] = payload.payload  # should pass array params properly
                                 elif name == 'object':
-                                    body[name] = payload.payload # should pass object params properly
+                                    body[name] = payload.payload  # should pass object params properly
                                 else:
                                     body[name] = payload.payload
 
@@ -50,25 +50,31 @@ def main(args: tuple = ()) -> int:
 
                         attacker.attack(method.name, target.hostname, path_params, query_params, header_params, body)
 
+                        ids_responded: bool = False
                         for alert in expected_alerts:
                             new_alerts = config.server_info.get_agent_alerts_number(target.id, alert.rule_id)
-                            if new_alerts <= alert_stats_before[alert]:
-                                config.server_info.send_alert(
-                                    str(
-                                        {
-                                            "agent_id": target.id,
-                                            "message" : "Trigger failure",
-                                            "rule_id" : alert.rule_id,
-                                            "technique" : {
-                                                "name" : technique.name,
-                                                "id" : technique.uid
-                                            },
-                                            "payload" : payload
-                                        }
-                                    )
+                            if new_alerts > alert_stats_before[alert]:
+                                ids_responded = True
+                                break
+
+                        if not ids_responded:
+                            config.server_info.send_alert(
+                                str(
+                                    {
+                                        "agent_id": target.id,
+                                        "message": "Trigger failure",
+                                        "technique": {
+                                            "name": technique.name,
+                                            "id": technique.uid
+                                        },
+                                        "expected_alerts_id": [alert.rule_id for alert in expected_alerts],
+                                        "payload": payload
+                                    }
                                 )
+                            )
+
     return 0
 
 
 if __name__ == '__main__':
-    exit(main())
+    exit(main(("../config/config.json",)))
